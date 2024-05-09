@@ -1,5 +1,12 @@
 Config = {}
 
+Config.Notify = "okokNotify" --    'oxlib'  /  'okokNotify' / 'mythic' (experimental) // 
+
+Config.UseDispatch = true -- use notifications for the police (currently esx_dispatch)
+
+Config.PoliceJobName = 'police'
+Config.minPoliceCount = 1 -- minimum account of police officers, 0 to disable 
+
 Config.Money = {10000,20000}
 Config.Reward_item = 'black_money' --- money // black_money
 Config.Robbery_time = 60 -- in seconds

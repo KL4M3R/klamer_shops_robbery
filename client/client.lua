@@ -9,9 +9,8 @@
 --
 
 function Notify(text1,text2,time,type)
-    exports['okokNotify']:Alert(text1,text2,time,type)
+    if Config.Notify == 'oxlib' then lib.notify({title = text1,description = text2,type = type}) elseif Config.Notify == 'okokNotify' then exports['okokNotify']:Alert(text1,text2,time,type) elseif Config.Notify == 'mythic' then exports['mythic_notify']:DoHudText(type, text1..' '..text2) end
 end
-
 --
 ---
 ----
@@ -85,6 +84,21 @@ end
 ----
 ---
 --
+function randomId()
+    math.randomseed(GetCloudTimeAsInt())
+    return string.gsub("xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx", "[xy]", function(c)
+        return string.format("%x", (c == "x") and math.random(0, 0xf) or math.random(8, 0xb))
+    end)
+end
+function GetStreetAndZone()
+    local coords = GetEntityCoords(GetPlayerPed(-1))
+    local s1, s2 = Citizen.InvokeNative(0x2EB41072B4C1E4C0, coords.x, coords.y, coords.z, Citizen.PointerValueInt(), Citizen.PointerValueInt())
+    local street1 = GetStreetNameFromHashKey(s1)
+    local street2 = GetStreetNameFromHashKey(s2)
+    local zone = GetLabelText(GetNameOfZone(coords.x, coords.y, coords.z))
+    local street = street1 .. ", " .. zone
+    return street
+end
 AddEventHandler('klamer_napady:sejf',function(data)
     ESX.TriggerServerCallback('fraud:cooldown_sejf',function(coldown)
         if coldown == 'napada' then
@@ -96,12 +110,33 @@ AddEventHandler('klamer_napady:sejf',function(data)
         local input = lib.inputDialog('VAULT', {'INPUT PIN'})
         if not input then return end
         if json.encode(input[1]) == '"'..kod..'"' then
+            ESX.TriggerServerCallback('klamer:policecounter', function(enough_police) 
+            if enough_police then
             Notify('You entered the correct code', 'The safe was opened', 2500, 'success')
             TriggerServerEvent('fraud:dodaj_do_cooldownu_sejf')
             clear_napad()
-            --local id = randomId()
-           -- local blip = {id=id,usun = false,czas = 60,name ='# NAPAD NA SEJF',color = 1, sprite=161, scale = 0.9,duration = 6000}
-            --klamer_police_allert('10-90','NAPAD NA SEJF W SKLEPIE',2,blip)
+            if Config.UseDispatch == true then
+                local coordy_pedofila = GetEntityCoords(GetPlayerPed(-1))
+                local cwelcweldziwka = {
+                code = "",
+                street = GetStreetAndZone(),
+                id = randomId(),
+                priority = 2,
+                title = "the store's security alarm went off",
+                duration = 10000,
+                blipname = '# STORE`S SECURITY ALARM !',
+                color = 1,
+                sprite = 161,
+                fadeOut = Config.Robbery_time,
+                position = {
+                    x = coordy_pedofila.x,
+                    y = coordy_pedofila.y,
+                    z = coordy_pedofila.z
+                },
+                job = Config.PoliceJobName}
+                TriggerServerEvent("dispatch:svNotify", cwelcweldziwka)
+            end
+
             if lib.progressCircle({
                 label = 'you take the money',
                 duration = Config.Robbery_time*1000,
@@ -113,14 +148,14 @@ AddEventHandler('klamer_napady:sejf',function(data)
             }) then
                 Notify('The robbery is over', '', 2500, 'info')
                 szuka_kodu = false
-                --local blip = {id=id,usun = true,czas = 60,name ='# NAPAD NA SEJF',color = 1, sprite=161, scale = 0.9,duration = 6000}
-                --klamer_police_allert('10-90','Skończono napad',1,blip)
                 TriggerServerEvent('IsDamageTrackerActiveOnNetworkId(netID)')
             else
                 Notify('The robbery is over', '', 2500, 'info')
-                --local blip = {id=id,usun = true,czas = 60,name ='# NAPAD NA SEJF',color = 1, sprite=161, scale = 0.9,duration = 6000}
-                --klamer_police_allert('10-90','Anulowano napad',1,blip)
             end
+        else
+         Notify('you cant start a robbery', 'there are not enough police', 2500, 'error')
+        end
+        end)
         else
             Notify('WRONG PIN ENTERED', 'Unable to open the safe.', 2500, 'error')
         end
@@ -203,12 +238,14 @@ end
 ----
 ---
 --
-function gen_kodu2()
-    for i = 1, 6 do
+function gen_kodu2()    
+    for i = 1, 6 do                             
         local digit = math.random(0, 9)  -- Losowanie cyfry od 0 do 9
         kod = kod .. tostring(digit)  -- Dodanie cyfry do hasła
     end
 end
+
+
 
 --
 ---

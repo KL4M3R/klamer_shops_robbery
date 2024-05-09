@@ -26,6 +26,26 @@ ESX.RegisterServerCallback('fraud:cooldown_sejf',function(source,cb)
     end
 end)
 
+
+ESX.RegisterServerCallback('klamer:policecounter'
+, function(soure,cb)
+    local xPlayers = ESX.GetPlayers()  -- Pobiera listę zalogowanych graczy
+    local count = 0
+
+    for i=1, #xPlayers, 1 do
+        local xPlayer = ESX.GetPlayerFromId(xPlayers[i])
+        if xPlayer.job.name == Config.PoliceJobName then
+            count = count + 1
+        end
+    end
+    if count >= Config.minPoliceCount  then
+        cb(true)
+        return
+    end
+    cb(false)
+end)
+
+
 --
 ---
 ----
