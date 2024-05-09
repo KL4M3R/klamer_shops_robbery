@@ -9,6 +9,8 @@ or/also
 
 ox_target => https://github.com/overextended/ox_target
 
+esx_disptach (optional) => https://github.com/zThundy/esx_dispatch
+
 
 # [CONFIG]
 
